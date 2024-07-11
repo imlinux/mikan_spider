@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(60 * time.Minute)
 	go func() {
 		for {
 			select {
