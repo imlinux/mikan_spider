@@ -1,7 +1,7 @@
-FROM alpine
+FROM golang
 
 ADD mikan_spider /root
-
+COPY ca-certificates.crt /usr/local/share/ca-certificates/
 WORKDIR /root
 
-ENTRYPOINT ["/root/mikan_spider"]
+CMD ["/root/mikan_spider"]

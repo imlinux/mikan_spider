@@ -166,7 +166,11 @@ func (s *Spider) SyncQb() error {
 			}
 
 			srcFile := strings.ReplaceAll(t.ContentPath, "/downloads", "/volume2/video/download/")
-			err = os.Rename(srcFile, "/volume2/video/video/海贼王/"+t.Name)
+			dstFilename, err := s.filename(t.Hash, t.Name)
+			if err != nil {
+				return err
+			}
+			err = os.Rename(srcFile, "/volume2/video/video/海贼王/"+dstFilename)
 			if err != nil {
 				return err
 			}
@@ -178,6 +182,23 @@ func (s *Spider) SyncQb() error {
 	}
 
 	return nil
+}
+
+func (s *Spider) filename(torrentHash string, filename string) (string, error) {
+	row := s.db.QueryRow("select Episode from rss_info where TorrentHash=?", torrentHash)
+	var Episode string
+	err := row.Scan(&Episode)
+	if err != nil {
+		return "", err
+	}
+	items := strings.Split(filename, ".")
+	var ret string
+	if len(items) > 1 {
+		ret = Episode + "." + items[1]
+	} else {
+		ret = Episode
+	}
+	return ret, nil
 }
 
 func (s *Spider) saveRss(item DbItem) error {
