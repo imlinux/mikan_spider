@@ -202,7 +202,7 @@ func (s *Spider) filename(torrentHash string, filename string) (string, error) {
 }
 
 func (s *Spider) saveRss(item DbItem) error {
-	r, err := s.db.Query("select count(1) from rss_info where TorrentHash=?", item.TorrentHash)
+	r, err := s.db.Query("select count(1) from rss_info where Episode=?", item.Episode)
 	if err != nil {
 		return err
 	}
