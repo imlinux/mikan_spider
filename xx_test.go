@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/autobrr/go-qbittorrent"
 	_ "github.com/mattn/go-sqlite3"
+	"io/fs"
 	"log"
+	"os"
 	"testing"
 )
 
@@ -58,4 +61,12 @@ func Test_3(t *testing.T) {
 	}
 
 	fmt.Println(a)
+}
+
+func Test_4(t *testing.T) {
+	err := fs.WalkDir(os.DirFS("/home/dong/Downloads"), ".", func(path string, d fs.DirEntry, err error) error {
+		fmt.Println(path)
+		return errors.New("ceshi")
+	})
+	fmt.Println(err)
 }

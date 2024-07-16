@@ -26,14 +26,11 @@ func main() {
 	}
 
 	ticker := time.NewTicker(60 * time.Minute)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				fmt.Println("开始执行")
-				run(s)
-			}
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Println("开始执行")
+			run(s)
 		}
-	}()
-	select {}
+	}
 }

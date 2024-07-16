@@ -8,9 +8,11 @@ import (
 	"github.com/autobrr/go-qbittorrent"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 )
@@ -160,16 +162,42 @@ func (s *Spider) SyncQb() error {
 	}
 	for _, t := range torrent {
 		if t.State == "pausedUP" {
+			fmt.Printf("%s下载完成开始处理", t.Name)
 			_, err := s.db.Exec("update rss_info set State=? where TorrentHash=?", t.State, t.Hash)
 			if err != nil {
 				return err
 			}
 
 			srcFile := strings.ReplaceAll(t.ContentPath, "/downloads", "/volume2/video/download/")
-			dstFilename, err := s.filename(t.Hash, t.Name)
+			fileinfo, err := os.Stat(srcFile)
 			if err != nil {
 				return err
 			}
+			if fileinfo.IsDir() {
+				var filelength int64 = 0
+				err = fs.WalkDir(os.DirFS(srcFile), ".", func(p string, d fs.DirEntry, err error) error {
+					if err != nil {
+						return err
+					}
+					fileinfo, err = d.Info()
+					if err != nil {
+						return nil
+					}
+					if !d.IsDir() && fileinfo.Size() > filelength {
+						srcFile = path.Join(srcFile, p)
+						filelength = fileinfo.Size()
+					}
+					return nil
+				})
+				if err != nil {
+					return err
+				}
+			}
+			dstFilename, err := s.filename(t.Hash, srcFile)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("移动%s", srcFile)
 			err = os.Rename(srcFile, "/volume2/video/video/海贼王/"+dstFilename)
 			if err != nil {
 				return err
@@ -178,6 +206,8 @@ func (s *Spider) SyncQb() error {
 			if err != nil {
 				return err
 			}
+		} else {
+			fmt.Printf("%s %s\n", t.Name, t.State)
 		}
 	}
 
@@ -191,14 +221,8 @@ func (s *Spider) filename(torrentHash string, filename string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	items := strings.Split(filename, ".")
-	var ret string
-	if len(items) > 1 {
-		ret = Episode + "." + items[1]
-	} else {
-		ret = Episode
-	}
-	return ret, nil
+
+	return Episode + path.Ext(filename), nil
 }
 
 func (s *Spider) saveRss(item DbItem) error {
