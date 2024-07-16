@@ -162,7 +162,7 @@ func (s *Spider) SyncQb() error {
 	}
 	for _, t := range torrent {
 		if t.State == "pausedUP" {
-			fmt.Printf("%s下载完成开始处理", t.Name)
+			fmt.Printf("%s下载完成开始处理\n", t.Name)
 			_, err := s.db.Exec("update rss_info set State=? where TorrentHash=?", t.State, t.Hash)
 			if err != nil {
 				return err
@@ -197,7 +197,7 @@ func (s *Spider) SyncQb() error {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("移动%s", srcFile)
+			fmt.Printf("移动%s\n", srcFile)
 			err = os.Rename(srcFile, "/volume2/video/video/海贼王/"+dstFilename)
 			if err != nil {
 				return err
